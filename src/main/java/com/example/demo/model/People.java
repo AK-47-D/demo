@@ -42,4 +42,17 @@ public class People {
     public void setName(String name) {
         this.name = name;
     }
+
+    @Override
+    public boolean equals(Object obj) {
+        if(obj instanceof People){
+            return ((People)obj).getName().equals(this.getName());
+        }
+        return false;
+    }
+
+    @Override
+    public int hashCode() {
+        return 17 * this.getName().length();
+    }
 }

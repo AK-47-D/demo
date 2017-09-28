@@ -13,7 +13,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
-import org.springframework.stereotype.Service;
 
 /**
  * Created by wb-cmx239369 on 2017/9/27.
@@ -22,43 +21,45 @@ import org.springframework.stereotype.Service;
 public class PeopleConsumerImpl implements PeopleConsumer {
     private static final Logger logger = LoggerFactory.getLogger(PeopleConsumerImpl.class);
 
+    private static boolean startFlg = false;
+
     @Autowired
     private PeopleService peopleService;
 
-
-    private static PeopleConsumerImpl peopleConsumer = null;
-    private PeopleConsumerImpl(){}
-    public static PeopleConsumerImpl getSingletonPeopleConsumer(){
-        if(peopleConsumer==null){
-            synchronized (PeopleConsumerImpl.class) {
-                if(peopleConsumer==null) {
-                    peopleConsumer = new PeopleConsumerImpl();
-                }
-            }
-        }
-        return peopleConsumer;
-    }
+//    @Autowired
+//    private static PeopleConsumer peopleConsumer;
+//    private PeopleConsumerImpl(){}
+//    public static PeopleConsumer getSingletonPeopleConsumer(){
+//        if(peopleConsumer==null){
+//            synchronized (PeopleConsumerImpl.class) {
+//                ApplicationContext applicationContext = new ClassPathXmlApplicationContext("");
+//            }
+//        }
+//        return peopleConsumer;
+//    }
     @Override
     public void startConsumer(){
-        final DefaultMQPushConsumer consumer = new DefaultMQPushConsumer("PeopleConsumer");
-        consumer.setNamesrvAddr("127.0.0.1:9876");
-        consumer.setInstanceName("Consumber");
-        try {
-            consumer.subscribe("people","*");
-            consumer.registerMessageListener((MessageListenerConcurrently) (msgs,context) ->{
+        if(!startFlg){
+            final DefaultMQPushConsumer consumer = new DefaultMQPushConsumer("PeopleConsumer");
+            consumer.setNamesrvAddr("127.0.0.1:9876");
+            consumer.setInstanceName("Consumber");
+            try {
+                consumer.subscribe("people","*");
+                consumer.registerMessageListener((MessageListenerConcurrently) (msgs,context) ->{
 
-                MessageExt msg = msgs.get(0);
-                if(msg.getTopic().equals("people")){
-                        if(msg.getTags().equals("save")){
-                        logger.info("consumer:people-save=============={}",peopleService.save(JSON.toJavaObject((JSON) JSON.parse(msg.getBody()), People.class)));
+                    MessageExt msg = msgs.get(0);
+                    if(msg.getTopic().equals("people")){
+                            if(msg.getTags().equals("save")){
+                            logger.info("consumer:people-save=============={}",peopleService.save(JSON.toJavaObject((JSON) JSON.parse(msg.getBody()), People.class)));
+                        }
                     }
-                }
-                return ConsumeConcurrentlyStatus.CONSUME_SUCCESS;
-            });
-            consumer.start();
-            logger.info("people-Consumer:start");
-        } catch (MQClientException e) {
-            e.printStackTrace();
+                    return ConsumeConcurrentlyStatus.CONSUME_SUCCESS;
+                });
+                consumer.start();
+                logger.info("people-Consumer:start");
+            } catch (MQClientException e) {
+                e.printStackTrace();
+            }
         }
     }
 

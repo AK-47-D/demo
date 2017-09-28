@@ -1,14 +1,20 @@
 package com.example.demo.controller;
 
+import com.alibaba.fastjson.JSON;
 import com.example.demo.model.People;
 import com.example.demo.rocketMQ.PeopleProducer;
+import com.example.demo.service.PeopleService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.ModelMap;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.ResponseBody;
 
 import java.util.Date;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 /**
  * Created by wb-cmx239369 on 2017/9/27.
@@ -16,7 +22,7 @@ import java.util.Date;
 @Controller
 public class HellowController {
     @Autowired
-    private PeopleProducer peopleProducer;
+    private PeopleService peopleService;
 
     @GetMapping("hello")
     public String hello(ModelMap modelMap){
@@ -26,13 +32,14 @@ public class HellowController {
         modelMap.addAttribute("fromUserName", "老许");
         return "hello";
     }
-    @GetMapping("testNew")
+    @GetMapping("peopleService")
+    public String peopleService(){
+        return "peopleService";
+    }
+    @PostMapping("testNew")
     @ResponseBody
-    public String testNew() throws Exception{
-        People people = new People();
-        people.setAge(24);
-        people.setName("陈明熙");
-        peopleProducer.sendPeopleMQ(people);
-        return "success";
+    public String testNew(Integer count) throws Exception{
+        Map<String,List<People>> map = peopleService.serviceMadePeople(count);
+        return "success: 造人服务 ===========" + JSON.toJSONString(map);
     }
 }
